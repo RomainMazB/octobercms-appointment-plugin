@@ -1,0 +1,5 @@
+title: Appointments
+modelClass: RomainMazB\Appointment\Models\Appointment
+nameFrom: date
+toolbar:
+    buttons: reorder_toolbar

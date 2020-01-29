@@ -1,0 +1,16 @@
+<h3 class="text-4xl">Les jeudis de la création et de la reprise</h3>
+<form data-request="{{ __SELF__ }}::onSelectDate" data-request-update="'{{ __SELF__ }}::available-dates': '#available-dates'">
+    {% for type in __SELF__.appointmentTypes %}
+    <div>
+        <input type="radio" name="appointment_type" value="{{ type.id }}" id="appointment_type-{{type.id}}" />
+        <label for="appointment_type-{{type.id}}">
+            <span>{{type.name}}</span>
+            <p>{{type.description}}</p>
+            <span>Durée du rendez-vous: {{ type.duration }} minutes</span>
+        </label>
+    </div>
+    {% endfor %}
+    <input type="submit">
+</form>
+<div id="available-dates">
+</div>

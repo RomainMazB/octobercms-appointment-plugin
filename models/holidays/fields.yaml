@@ -1,0 +1,11 @@
+fields:
+    date_start:
+        label: 'romainmazb.appointment::lang.holidays.labels.date_start'
+        mode: date
+        span: auto
+        type: datepicker
+    date_end:
+        label: 'romainmazb.appointment::lang.holidays.labels.date_end'
+        mode: date
+        span: auto
+        type: datepicker

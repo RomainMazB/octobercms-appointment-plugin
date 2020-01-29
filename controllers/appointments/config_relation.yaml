@@ -1,0 +1,7 @@
+appointmenttype:
+    label: appointmenttype
+    view:
+        list: $/romainmazb/appointment/models/appointmenttype/columns.yaml
+    manage:
+        form: $/romainmazb/appointment/models/appointmenttype/fields.yaml
+        recordsPerPage: 10

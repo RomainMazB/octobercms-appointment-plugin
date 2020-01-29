@@ -1,0 +1,16 @@
+columns:
+    day_of_the_week:
+        type: number
+        invisible: true
+    day_of_the_week_as_string:
+        label: 'romainmazb.appointment::lang.opening_hours.labels.day_of_the_week'
+        type: text
+    open_at:
+        label: 'romainmazb.appointment::lang.opening_hours.labels.open_at'
+        type: time
+    close_at:
+        label: 'romainmazb.appointment::lang.opening_hours.labels.close_at'
+        type: time
+defaultSort:
+    column: day_of_the_week
+    direction: asc

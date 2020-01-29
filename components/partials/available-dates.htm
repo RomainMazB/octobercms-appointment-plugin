@@ -1,0 +1,6 @@
+Sélectionnez votre jeudi:
+<select name="available_dates">
+    {% for date in next_available_dates %}
+    <option value="{{ date.format('d-m-Y H:i:s') }}">{{ date.getStartDate().format("d-m-Y H:i:s") }}</option>
+    {% endfor %}
+</select>

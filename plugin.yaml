@@ -1,0 +1,48 @@
+plugin:
+    name: 'romainmazb.appointment::lang.plugin.name'
+    description: 'romainmazb.appointment::lang.plugin.description'
+    author: 'Romain ''Maz'' BILLOIR'
+    icon: oc-icon-calendar
+    homepage: ''
+permissions:
+    manage_appointments_appointment_types:
+        tab: 'romainmazb.appointment::lang.permissions.manage_appointments_appointment_types.tab_title'
+        label: 'romainmazb.appointment::lang.permissions.manage_appointments_appointment_types.label'
+    display_appointments:
+        tab: 'romainmazb.appointment::lang.permissions.display_appointments.tab_title'
+        label: 'romainmazb.appointment::lang.permissions.display_appointments.label'
+    manage_opening_hours_and_holidays:
+        tab: 'romainmazb.appointment::lang.permissions.manage_opening_hours_and_holidays.tab_title'
+        label: 'romainmazb.appointment::lang.permissions.manage_opening_hours_and_holidays.label'
+navigation:
+    appointments_main_menu:
+        label: 'romainmazb.appointment::lang.plugin.name'
+        url: romainmazb/appointment/appointments
+        icon: icon-calendar
+        permissions:
+            - display_appointments
+        sideMenu:
+            appointments_side_menu:
+                label: 'romainmazb.appointment::lang.backend_menus.display_appointments.label'
+                url: romainmazb/appointment/appointments
+                icon: icon-calendar
+                permissions:
+                    - display_appointments
+            appointment_types_side_menu:
+                label: 'romainmazb.appointment::lang.backend_menus.manage_appointments_appointment_types.label'
+                url: romainmazb/appointment/appointmenttypes
+                icon: icon-folder-open-o
+                permissions:
+                    - manage_appointments_appointment_types
+            opening_hours_side_menu:
+                label: 'romainmazb.appointment::lang.backend_menus.manage_opening_hours.label'
+                url: romainmazb/appointment/openinghours
+                icon: icon-clock-o
+                permissions:
+                    - manage_opening_hours_and_holidays
+            manage_opening_hours_and_holidays_side_menu:
+                label: 'romainmazb.appointment::lang.backend_menus.manage_holidays.label'
+                url: romainmazb/appointment/holidays
+                icon: icon-plane
+                permissions:
+                    - manage_opening_hours_and_holidays

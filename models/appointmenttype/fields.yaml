@@ -1,0 +1,25 @@
+fields:
+    name:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.name'
+        span: auto
+        required: 1
+        type: text
+    duration:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.duration'
+        span: auto
+        placeholder: 'romainmazb.appointment::lang.appointment_types.placeholders.duration'
+        default: ''
+        required: 1
+        type: number
+        comment: 'romainmazb.appointment::lang.appointment_types.labels_helpers.duration'
+    description:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.description'
+        size: tiny
+        span: auto
+        type: textarea
+    price:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.price'
+        span: auto
+        placeholder: 'romainmazb.appointment::lang.appointment_types.placeholders.price'
+        type: number
+        comment: 'romainmazb.appointment::lang.appointment_types.labels_helpers.price'

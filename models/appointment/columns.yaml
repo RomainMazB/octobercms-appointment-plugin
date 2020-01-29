@@ -1,0 +1,38 @@
+columns:
+    id:
+        label: id
+        type: number
+        invisible: true
+        sortable: true
+        width: '5'
+    datetime:
+        label: 'romainmazb.appointment::lang.appointments.labels.date'
+        type: text
+        sortable: true
+        width: '15'
+    first_name:
+        label: 'romainmazb.appointment::lang.appointments.labels.first_name'
+        type: text
+        searchable: true
+        width: '15'
+    last_name:
+        label: 'romainmazb.appointment::lang.appointments.labels.last_name'
+        type: text
+        width: '15'
+    appointment_type_name:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.name'
+        type: text
+        select: name
+        relation: appointment_type
+        width: '15'
+    phone:
+        label: 'romainmazb.appointment::lang.appointments.labels.phone'
+        type: text
+        width: '15'
+    email:
+        label: 'romainmazb.appointment::lang.appointments.labels.email'
+        type: text
+    created_at:
+        label: 'romainmazb.appointment::lang.appointments.labels.booked_at'
+        type: datetime
+        sortable: true

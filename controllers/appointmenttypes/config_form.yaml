@@ -1,0 +1,11 @@
+name: AppointmentTypes
+modelClass: RomainMazB\Appointment\Models\AppointmentType
+form: $/romainmazb/appointment/models/appointmenttype/fields.yaml
+defaultRedirect: romainmazb/appointment/appointmenttypes
+create:
+    redirect: 'romainmazb/appointment/appointmenttypes/update/:id'
+    redirectClose: romainmazb/appointment/appointmenttypes
+update:
+    redirect: romainmazb/appointment/appointmenttypes
+    redirectClose: romainmazb/appointment/appointmenttypes
+preview: {  }

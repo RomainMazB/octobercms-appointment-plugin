@@ -1,0 +1,4 @@
+title: Holidays
+modelClass: RomainMazB\Appointment\Models\Holidays
+toolbar:
+    buttons: reorder_toolbar

@@ -1,0 +1,10 @@
+columns:
+    name:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.name'
+        type: text
+    duration:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.duration'
+        type: text
+    price:
+        label: 'romainmazb.appointment::lang.appointment_types.labels.price'
+        type: text

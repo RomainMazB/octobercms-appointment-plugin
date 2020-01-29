@@ -1,0 +1,26 @@
+fields:
+    day_of_the_week:
+        label: 'Balloon Selector'
+        options:
+            1: 'romainmazb.appointment::lang.general.days_name.day1'
+            2: 'romainmazb.appointment::lang.general.days_name.day2'
+            3: 'romainmazb.appointment::lang.general.days_name.day3'
+            4: 'romainmazb.appointment::lang.general.days_name.day4'
+            5: 'romainmazb.appointment::lang.general.days_name.day5'
+            6: 'romainmazb.appointment::lang.general.days_name.day6'
+            7: 'romainmazb.appointment::lang.general.days_name.day7'
+        span: full
+        required: 1
+        type: balloon-selector
+    open_at:
+        label: 'romainmazb.appointment::lang.opening_hours.labels.open_at'
+        mode: time
+        span: left
+        required: 1
+        type: datepicker
+    close_at:
+        label: 'romainmazb.appointment::lang.opening_hours.labels.close_at'
+        mode: time
+        span: auto
+        required: 1
+        type: datepicker

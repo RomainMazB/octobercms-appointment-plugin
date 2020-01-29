@@ -1,0 +1,7 @@
+columns:
+    date_start:
+        label: 'romainmazb.appointment::lang.holidays.labels.date_start'
+        type: date
+    date_end:
+        label: 'romainmazb.appointment::lang.holidays.labels.date_end'
+        type: date

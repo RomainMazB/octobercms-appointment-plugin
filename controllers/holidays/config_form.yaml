@@ -1,0 +1,10 @@
+name: Holidays
+form: $/romainmazb/appointment/models/holidays/fields.yaml
+modelClass: RomainMazB\Appointment\Models\Holidays
+defaultRedirect: romainmazb/appointment/holidays
+create:
+    redirect: 'romainmazb/appointment/holidays/update/:id'
+    redirectClose: romainmazb/appointment/holidays
+update:
+    redirect: romainmazb/appointment/holidays
+    redirectClose: romainmazb/appointment/holidays

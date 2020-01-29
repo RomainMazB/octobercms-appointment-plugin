@@ -1,0 +1,10 @@
+name: OpeningHours
+form: $/romainmazb/appointment/models/openinghours/fields.yaml
+modelClass: RomainMazB\Appointment\Models\OpeningHours
+defaultRedirect: romainmazb/appointment/openinghours
+create:
+    redirect: 'romainmazb/appointment/openinghours/update/:id'
+    redirectClose: romainmazb/appointment/openinghours
+update:
+    redirect: romainmazb/appointment/openinghours
+    redirectClose: romainmazb/appointment/openinghours
