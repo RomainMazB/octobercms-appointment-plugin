@@ -34,7 +34,15 @@ class Appointment extends Model
         return CarbonPeriod::create($this->date, $this->appointment_type->interval);
     }
 
-
+    /**
+     * returns date attribute as a Carbon object
+     *
+     * @return Carbon
+     */
+    // public function getDatetimeAttribute()
+    // {
+    //     return Carbon::createFromTimeString($this->datetime);
+    // }
     /**
      * returns end_datetime attribute as a Carbon object
      *

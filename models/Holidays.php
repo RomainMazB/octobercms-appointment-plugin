@@ -2,6 +2,7 @@
 
 use Model;
 use \Carbon\Carbon;
+use App;
 
 /**
  * Model
@@ -27,24 +28,30 @@ class Holidays extends Model
     /**
      * returns date_start attribute as a Carbon object
      *
-     * @param String $date
+     * @param String $date_start
      *
      * @return Carbon
      */
-    public function getDateStartAttribute($date)
+    public function getDateStartAttribute($date_start)
     {
-        return $this->date_start = Carbon::createFromTimeString($date);
+        if (!App::runningInBackend())
+            return Carbon::createFromTimeString($date_start);
+
+        return $this->date_start;
     }
 
     /**
      * returns date_end attribute as a Carbon object
      *
-     * @param String $date
+     * @param String $date_end
      *
      * @return Carbon
      */
-    public function getDateEndAttribute($date)
+    public function getDateEndAttribute($date_end)
     {
-        return $this->date_end = Carbon::createFromTimeString($date);
+        if (!App::runningInBackend())
+            return Carbon::createFromTimeString($date_end);
+
+        return $this->date_end;
     }
 }

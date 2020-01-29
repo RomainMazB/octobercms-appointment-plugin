@@ -72,6 +72,22 @@ class OpeningHours extends Model
      */
     public function getDayOfTheWeekAsStringAttribute()
     {
-        return Lang::get('romainmazb.appointment::lang.general.days_name.day' . $this->day_of_the_week);
+        return Lang::get('romainmazb.appointment::lang.opening_hours.labels.day' . $this->day_of_the_week);
+    }
+
+    /**
+     * Returns a collection of CarbonInterval within the opening hours
+     * Returns null if CarbonInterval range is greater than opening hours one
+     *
+     * @param CarbonInterval $appointmentInterval
+     *
+     * @return array|null
+     */
+    public function splittedByInterval(CarbonInterval $appointmentInterval)
+    {
+        if ($this->interval->seconds < $appointmentInterval->seconds) // Hacky solution: use greaterThan function with Carbon 2
+            return null;
+
+        return collect(CarbonPeriod::create($this->open_at, $appointmentInterval, $this->close_at));
     }
 }

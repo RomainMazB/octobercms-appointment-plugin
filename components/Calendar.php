@@ -19,26 +19,14 @@ class Calendar extends \Cms\Classes\ComponentBase
         ];
     }
 
-    /**
-     * Called by AJAX when an available date is picked up
-     * $this->page is an Organizer filled with available appointments on the date,
-     * passed into the partial
-     *
-     * @return void
-     */
     public function onSelectDate()
     {
+        date_default_timezone_set('Europe/Paris');
         $appointment_type = AppointmentType::where('id', post('appointment_type'))->firstOrFail();
         $organizer = new Organizer([]);
         $this->page['next_available_dates'] = $organizer->onOpeningHours(4)->forAppointmentType($appointment_type)->getDates()->all();
     }
 
-    /**
-     * Returns all appointment types
-     * Used to render the appointment types in views
-     *
-     * @return AppointmentType
-     */
     public function appointmentTypes() {
         return AppointmentType::all();
     }

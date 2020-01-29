@@ -1,10 +1,10 @@
 0.1.0:
-    - 'Created table romainmazb_appointment_appointments'
     - builder_table_create_romainmazb_appointment_appointments.php
-    - 'Created table romainmazb_appointment_appointment_types'
     - builder_table_create_romainmazb_appointment_appointment_types.php
-    - 'Created table romainmazb_appointment_opening_hours'
     - builder_table_create_romainmazb_appointment_opening_hours.php
-    - 'Created table romainmazb_appointment_holidays'
     - builder_table_create_romainmazb_appointment_holidays.php
+    - 'Table romainmazb_appointment_appointments created.'
+    - 'Table romainmazb_appointment_appointment_types created.'
+    - 'Table romainmazb_appointment_holidays created.'
+    - 'Table romainmazb_appointment_opening_hours created.'
     - 'Plugin initialized.'

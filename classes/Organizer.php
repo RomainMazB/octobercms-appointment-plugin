@@ -15,69 +15,45 @@ use RomainMazB\Appointment\Classes\PeriodInterval;
 
 class Organizer extends Collection
 {
-    /**
-     * Day of the week, format ISO: Sunday = 0, Monday = 1, ...
-     *
-     * @var integer|null
-     */
     public $day_of_the_week = null;
-    /**
-     * appointment type used to split intervals
-     *
-     * @var AppointmentType|null
-     */
+
     public $appointment_type = null;
-    /**
-     * Opening hours,
-     *
-     * @var OpeningHours
-     */
+
     public $opening_hours = null;
-    /**
-     * Nb of future weeks to be parsed
-     *
-     * @var integer
-     */
+
     public $weeks = 3;
-    /**
-     * Start date to render, including the booking deadline
-     *
-     * @var Carbon|null
-     */
+
     public $from_date = null;
-    /**
-     * End date to parse, get the priority over weeks if set
-     *
-     * @var Carbon|null
-     */
+
     public $to_date = null;
-    /**
-     * Determines if only available periods should be parsed (default) or not
-     *
-     * @var boolean
-     */
+
+    public $interval = null;
+
+    public $on_opening_hours = false;
+
     public $only_available_periods = true;
-    /**
-     * Determines if holidays should be extracted(default) or not
-     *
-     * @var boolean
-     */
+
     public $on_holidays = false;
-    /**
-     * Determines in days the booking deadline before which users can't book an appointment
-     *
-     * @var integer
-     */
+
     public $booking_deadline = 2;
 
     /**
-     * Determines the start date for Organizer (including booking deadline), default on today.
+     * Specifie the start date for Organizer (including booking deadline), default on today.
      *
      * @param Carbon $date
      * @return Organizer
      */
     public function fromDate(Carbon $date) {
         $this->from_date = $date;
+
+        return $this;
+    }
+
+    /**
+     * *Remove this function?? only used to default a 1 day for initial interval
+     */
+    public function setInterval(CarbonInterval $interval) {
+        $this->interval = $interval;
 
         return $this;
     }
@@ -98,7 +74,7 @@ class Organizer extends Collection
      * Specifies the day of the week to filter, iso days: sunday = 0, monday = 1, and son on
      *
      * @param Int $day_of_the_week
-     * @return Organizer
+     * @return void
      */
     public function dayOfWeek(Int $day_of_the_week) {
         $this->day_of_the_week = abs($day_of_the_week);
@@ -118,36 +94,19 @@ class Organizer extends Collection
         return $this;
     }
 
-    /**
-     * Specifie if only available period should be parsed (default)
-     *
-     * @param Int $day_of_the_week
-     * @return Organizer
-     */
-    public function onOpeningHours(Int $on_opening_hours) {
-        $this->on_opening_hours = $on_opening_hours;
+    public function onOpeningHours(Int $day_of_the_week) {
+        $this->on_opening_hours = true;
+        $this->dayOfWeek($day_of_the_week);
 
         return $this;
     }
 
-    /**
-     * Determines the number of week to be parsed
-     *
-     * @param Int $weeks
-     * @return Organizer
-     */
     public function forWeeks(Int $weeks = 3) {
         $this->weeks = abs($weeks);
 
         return $this;
     }
 
-    /**
-     * Specifie the appointment type for which periods need to be splitted
-     *
-     * @param AppointmentType $appointment_type
-     * @return Organizer
-     */
     public function forAppointmentType(AppointmentType $appointment_type) {
         $this->appointment_type = $appointment_type;
 
@@ -196,7 +155,7 @@ class Organizer extends Collection
     }
 
     /**
-     * Fiter the periods with a specific day
+     * Fiter the periods with a specific day, compared to opening hours
      *
      * @return Organizer
      */
@@ -212,11 +171,6 @@ class Organizer extends Collection
         return $filtered_collection;
     }
 
-    /**
-     * Filter the periods to matchs only the opening hours
-     *
-     * @return Organizer
-     */
     public function filterOnOpeningHours() {
         //Init
         $filtered_collection =  clone $this->empty();
@@ -262,34 +216,28 @@ class Organizer extends Collection
         $filtered_collection = clone $this;
         $filtered_collection = $this->empty();
         foreach($this as $period) {
-            // Filter only the appointment which are already picked in this period
             $booked_appointments_in_period = $booked_appointments
             ->filter(function($appointment) use ($period) {
                 return $appointment->datetime->isBetween($period->getStartDate(), $period->getEndDate());
             });
 
-            // If there isn't, don't parse the period, continue to the next period
             if($booked_appointments_in_period->isEmpty()) {
                 $filtered_collection->push($period);
                 continue;
             }
-            // Loop all the appointment to re-organize the organizer
+
             foreach($booked_appointments_in_period as $booked_appointment) {
                 $period_start_date = $period->getStartDate();
                 $before_interval = $period_start_date->diffAsCarbonInterval($booked_appointment->datetime);
-                // If the appointment is not at the beginning of the period
                 if($period_start_date->lessThan($booked_appointment->datetime)) {
-                    // Create a "before appointment" available period
                     $filtered_collection->push(
                         CarbonPeriod::create($period_start_date, $before_interval, $booked_appointment->datetime)->excludeEndDate()
                     );
                 }
-                // Set the period start date at the end of the appointment
                 $period->setStartDate($booked_appointment->end_datetime);
             }
-            // If the final period is not empty
+
             if($period->getStartDate()->lessThan($period->getEndDate())) {
-                // Define the left interval between last appointment and the end of opening hours
                 $period->setDateInterval($period->getStartDate()->diffAsCarbonInterval($period->getEndDate()));
                 $filtered_collection->push($period->excludeEndDate());
             }
@@ -298,7 +246,7 @@ class Organizer extends Collection
     }
 
     /**
-     * Filter the periods with a specific appointment type: the periods will be splitted with the appointment duration
+     * Filter the periods with a specific appointment type: the periods will be splitted with the appointment interval
      *
      * @return Organizer
      */
