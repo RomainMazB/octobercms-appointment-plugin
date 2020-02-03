@@ -10,6 +10,16 @@
         </label>
     </div>
     {% endfor %}
+    <label for="day_of_week">Day of week: </label>
+    <select name="day_of_week" id="day_of_week">
+        <option value="1">{{ 'romainmazb.appointment::lang.general.days_name.day1' | trans }}</option>
+        <option value="2">{{ 'romainmazb.appointment::lang.general.days_name.day2' | trans }}</option>
+        <option value="3">{{ 'romainmazb.appointment::lang.general.days_name.day3' | trans }}</option>
+        <option value="4">{{ 'romainmazb.appointment::lang.general.days_name.day4' | trans }}</option>
+        <option value="5">{{ 'romainmazb.appointment::lang.general.days_name.day5' | trans }}</option>
+        <option value="6">{{ 'romainmazb.appointment::lang.general.days_name.day6' | trans }}</option>
+        <option value="0">{{ 'romainmazb.appointment::lang.general.days_name.day0' | trans }}</option>
+    </select>
     <input type="submit">
 </form>
 <div id="available-dates">

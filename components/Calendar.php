@@ -21,13 +21,15 @@ class Calendar extends \Cms\Classes\ComponentBase
 
     public function onSelectDate()
     {
-        date_default_timezone_set('Europe/Paris');
         $appointment_type = AppointmentType::where('id', post('appointment_type'))->firstOrFail();
-        $organizer = new Organizer([]);
-        $this->page['next_available_dates'] = $organizer->onOpeningHours(4)->forAppointmentType($appointment_type)->getDates()->all();
+        $this->page['next_available_dates'] = Organizer::init()->whereDayOfWeek(post('day_of_week'))
+                                                                                      ->forAppointmentType($appointment_type)
+                                                                                      ->getDates()
+                                                                                      ->all();
     }
 
-    public function appointmentTypes() {
+    public function appointmentTypes()
+    {
         return AppointmentType::all();
     }
 }

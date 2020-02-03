@@ -1,6 +1,10 @@
-Sélectionnez votre jeudi:
+{% if next_available_dates %}
+{{ 'romainmazb.appointment::lang.general.pick_your_appointment_sentence' | trans }}:
 <select name="available_dates">
     {% for date in next_available_dates %}
     <option value="{{ date.format('d-m-Y H:i:s') }}">{{ date.getStartDate().format("d-m-Y H:i:s") }}</option>
     {% endfor %}
 </select>
+{% else %}
+{{ 'romainmazb.appointment::lang.general.no_available_date_sentence' | trans }}
+{% endif %}

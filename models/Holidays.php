@@ -26,7 +26,7 @@ class Holidays extends Model
 
 
     /**
-     * returns date_start attribute as a Carbon object
+     * returns date_start a datetime String when running in backend, and Carbon object in frontend
      *
      * @param String $date_start
      *
@@ -34,14 +34,14 @@ class Holidays extends Model
      */
     public function getDateStartAttribute($date_start)
     {
-        if (!App::runningInBackend())
-            return Carbon::createFromTimeString($date_start);
+        if (App::runningInBackend())
+            return $date_start;
 
-        return $this->date_start;
+        return Carbon::createFromTimeString($date_start);
     }
 
     /**
-     * returns date_end attribute as a Carbon object
+     * returns date_end a datetime String when running in backend, and Carbon object in frontend
      *
      * @param String $date_end
      *
@@ -49,9 +49,9 @@ class Holidays extends Model
      */
     public function getDateEndAttribute($date_end)
     {
-        if (!App::runningInBackend())
-            return Carbon::createFromTimeString($date_end);
+        if (App::runningInBackend())
+            return $date_end;
 
-        return $this->date_end;
+        return Carbon::createFromTimeString($date_end);
     }
 }

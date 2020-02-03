@@ -26,7 +26,7 @@ class OpeningHours extends Model
     public $rules = [];
 
     /**
-     * returns open_at attribute as a Carbon object
+     * returns open_at a datetime String when running in backend, and Carbon object in frontend
      *
      * @param String $open_at
      *
@@ -34,14 +34,14 @@ class OpeningHours extends Model
      */
     public function getOpenAtAttribute($open_at)
     {
-        if (!App::runningInBackend())
-            return Carbon::createFromTimeString($open_at);
+        if (App::runningInBackend())
+            return $open_at;
 
-        return $open_at;
+        return Carbon::createFromTimeString($open_at);
     }
 
     /**
-     * returns close_as attribute as a Carbon object
+     * returns  close_at as a datetime String when running in backend, and Carbon object in frontend
      *
      * @param String $close_at
      *
@@ -49,14 +49,14 @@ class OpeningHours extends Model
      */
     public function getCloseAtAttribute($close_at)
     {
-        if (!App::runningInBackend())
-            return Carbon::createFromTimeString($close_at);
+        if (App::runningInBackend())
+            return $close_at;
 
-        return $close_at;
+        return Carbon::createFromTimeString($close_at);
     }
 
     /**
-     * return interval for the current opening hours
+     * return interval as a CarbonInterval for the current opening hours
      *
      * @return CarbonInterval
      */
@@ -66,28 +66,12 @@ class OpeningHours extends Model
     }
 
     /**
-     * returns the value of a week day as a string
+     * returns the value of a week day as a String
      *
      * @return String
      */
     public function getDayOfTheWeekAsStringAttribute()
     {
-        return Lang::get('romainmazb.appointment::lang.opening_hours.labels.day' . $this->day_of_the_week);
-    }
-
-    /**
-     * Returns a collection of CarbonInterval within the opening hours
-     * Returns null if CarbonInterval range is greater than opening hours one
-     *
-     * @param CarbonInterval $appointmentInterval
-     *
-     * @return array|null
-     */
-    public function splittedByInterval(CarbonInterval $appointmentInterval)
-    {
-        if ($this->interval->seconds < $appointmentInterval->seconds) // Hacky solution: use greaterThan function with Carbon 2
-            return null;
-
-        return collect(CarbonPeriod::create($this->open_at, $appointmentInterval, $this->close_at));
+        return Lang::get('romainmazb.appointment::lang.general.days_name.day' . $this->day_of_the_week);
     }
 }

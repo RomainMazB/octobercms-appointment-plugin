@@ -100,8 +100,10 @@
             'day4' => 'Thursday',
             'day5' => 'Friday',
             'day6' => 'Saturday',
-            'day7' => 'Sunday',
-        ]
+            'day0' => 'Sunday',
+        ],
+        'pick_your_appointment_sentence' => 'Pick your appointment',
+        'no_available_date_sentence' => 'There is no available date within your choice, try another day.'
     ],
     'romainmazb' => [
         'appointment::lang' => [

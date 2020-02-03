@@ -6,326 +6,207 @@ use \Carbon\Carbon;
 use \Carbon\CarbonInterval;
 use \Carbon\CarbonPeriod;
 use \Illuminate\Support\Collection;
-use RomainMazB\Appointment\Models\AppointmentType;
-use RomainMazB\Appointment\Models\Appointment;
-use RomainMazB\Appointment\Models\OpeningHours;
-use RomainMazB\Appointment\Models\Holidays;
-use RomainMazB\Appointment\Classes\PeriodInterval;
+use RomainMazB\Appointment\Classes\Interfaces\FilterInterface;
 
-
-class Organizer extends Collection
+class Organizer
 {
-    public $day_of_the_week = null;
+    public static $default_weeks_range = 3;
 
-    public $appointment_type = null;
-
-    public $opening_hours = null;
-
-    public $weeks = 3;
-
-    public $from_date = null;
-
-    public $to_date = null;
-
-    public $interval = null;
-
-    public $on_opening_hours = false;
-
-    public $only_available_periods = true;
-
-    public $on_holidays = false;
-
-    public $booking_deadline = 2;
+    public static $default_interval = '1 day';
 
     /**
-     * Specifie the start date for Organizer (including booking deadline), default on today.
+     * Registered filter, all of this filter can be called from Organizer instance from their respective alias
      *
-     * @param Carbon $date
+     * @var array
+     */
+    private static $registered_filters = [
+        'whereDayOfWeek'     => \RomainMazB\Appointment\Classes\Filters\DayOfWeek::class,
+        'forAppointmentType' => \RomainMazB\Appointment\Classes\Filters\ForAppointmentType::class
+    ];
+
+    // This filter will be applied on every getDates() call, to disable, use whenever() method
+    private static $registered_default_filters = [
+        'onlyOpeningHours'    => \RomainMazB\Appointment\Classes\Filters\OpeningHours::class,
+        'notInHolidays'            => \RomainMazB\Appointment\Classes\Filters\NotInHolidays::class,
+        'onlyAvailable'            =>  \RomainMazB\Appointment\Classes\Filters\Available::class
+    ];
+
+    /**
+     * List of filters to apply, with default setup
+     *
+     * @var array
+     */
+    private $filters_to_apply = [];
+
+    protected $dates;
+
+    /**
+     * Create and init an Organizer
+     *
+     * @param Carbon $from_date
+     * @param CarbonInterval $interval
+     * @param Carbon $to_date
+     *
      * @return Organizer
      */
-    public function fromDate(Carbon $date) {
-        $this->from_date = $date;
+    public function __construct(Carbon $from_date = null, Carbon $to_date = null, CarbonInterval $interval = null)
+    {
+        $from_date = is_null($from_date) ? Carbon::today() : $from_date;
+
+        $interval = is_null($interval) ? CarbonInterval::createFromDateString(self::$default_interval) : $interval;
+
+        $to_date = is_null($to_date) ? $from_date->copy()->addWeeks(self::$default_weeks_range) : $to_date;
+
+        // Create the initial Organizer
+        $this->dates = new Collection([
+            CarbonPeriod::create($from_date, $interval, $to_date)
+                ->excludeEndDate()
+        ]);
 
         return $this;
     }
 
     /**
-     * *Remove this function?? only used to default a 1 day for initial interval
-     */
-    public function setInterval(CarbonInterval $interval) {
-        $this->interval = $interval;
-
-        return $this;
-    }
-
-    /**
-     * Specifies end date, if not, default will be weeks properties, which is set to default 3 (weeks)
+     * Static alias for constructor
      *
-     * @param Carbon $date
      * @return Organizer
      */
-    public function toDate(Carbon $date) {
-        $this->to_date = $date;
-
-        return $this;
+    public static function init()
+    {
+        return new static;
     }
 
     /**
-     * Specifies the day of the week to filter, iso days: sunday = 0, monday = 1, and son on
+     * Apply the filters, the default filters, and return all the periods from the Organizer as CarbonPeriod objects
      *
-     * @param Int $day_of_the_week
+     * @return Collection
+     */
+    public function getDates()
+    {
+        // Apply the default filters
+        foreach(self::$registered_default_filters as $filter_alias => $filter_class) {
+            $filter = new $filter_class($this->dates);
+            $this->applyFilter($filter, null);
+        }
+
+        // Apply the user defined filters
+        foreach($this->filters_to_apply as $filter_alias => $parameters) {
+            $filter = new self::$registered_filters[$filter_alias]($this->dates);
+            $this->applyFilter($filter, $parameters);
+        }
+
+        return $this->dates;
+    }
+
+    /**
+     * Verify the integrity of the filter (exists and is valid) and apply it on the current dates
+     *
+     * @param String $filter_name
+     * @param mixed $parameters
      * @return void
      */
-    public function dayOfWeek(Int $day_of_the_week) {
-        $this->day_of_the_week = abs($day_of_the_week);
-
-        return $this;
-    }
-
-    /**
-     * Specifies a booking_deadline in days (default: populate_roles_210(  ))
-     *
-     * @param Int $booking_deadline
-     * @return Organizer
-     */
-    public function bookingDeadLine(Int $booking_deadline) {
-        $this->booking_deadline = abs($booking_deadline);
-
-        return $this;
-    }
-
-    public function onOpeningHours(Int $day_of_the_week) {
-        $this->on_opening_hours = true;
-        $this->dayOfWeek($day_of_the_week);
-
-        return $this;
-    }
-
-    public function forWeeks(Int $weeks = 3) {
-        $this->weeks = abs($weeks);
-
-        return $this;
-    }
-
-    public function forAppointmentType(AppointmentType $appointment_type) {
-        $this->appointment_type = $appointment_type;
-
-        return $this;
-    }
-
-    /**
-     * Return the Organizer
-     *
-     * @return Organizer
-     */
-    public function getDates() {
-        // Init the from and to date
-        if (is_null($this->from_date))
-            $this->fromDate(Carbon::today());
-
-        if (is_null($this->to_date))
-            $this->toDate($this->from_date->copy()->addWeeks($this->weeks));
-
-        if(is_null($this->interval))
-            $this->setInterval(CarbonInterval::days(1));
-
-        // Create daily periods from within the dates to begin
-        $periods = $this->mergeItems(
-            CarbonPeriod::create($this->from_date, $this->interval, $this->to_date)->excludeEndDate()
-                                    ->toArray()
-        );
-        // Apply filters if set
-        if($this->on_opening_hours && $periods->isNotEmpty())
-            $periods = $periods->filterOnOpeningHours();
-
-        elseif (isset($this->day_of_the_week) && $periods->isNotEmpty())
-            $periods = $periods->filterWithDayOfTheWeek();
-
-        if(! $this->on_holidays && $periods->isNotEmpty())
-            $periods = $periods->filterNotInHolidays();
-
-        if($this->only_available_periods && $periods->isNotEmpty())
-            $periods = $periods->filterOnlyAvailablePeriods();
-
-        if (isset($this->appointment_type) && $periods->isNotEmpty())
-            $periods = $periods->filterForAppointmentType();
-
-        // Return a Organizer
-        return  $periods;
-    }
-
-    /**
-     * Fiter the periods with a specific day, compared to opening hours
-     *
-     * @return Organizer
-     */
-    public function filterWithDayOfTheWeek() {
-        //Init
-        $filtered_collection =  clone $this->empty();
-        $day_of_the_week = $this->day_of_the_week;
-
-        $filtered_collection = $this->filter(function($current_period) use ($day_of_the_week) {
-            return intval($current_period->format('w')) === $day_of_the_week;
-        });
-
-        return $filtered_collection;
-    }
-
-    public function filterOnOpeningHours() {
-        //Init
-        $filtered_collection =  clone $this->empty();
-        $opening_hours = OpeningHours::where('day_of_the_week', $this->day_of_the_week)->get();
-
-        // No opening hours on this day, return an empty collection
-        if($opening_hours->isEmpty())
-            return $filtered_collection;
-
-        $day_filtered_collection = $this->filterWithDayOfTheWeek();
-
-        foreach($day_filtered_collection as $date) {
-            foreach($opening_hours as $current_opening_hours) {
-                $start_datetime = $date->copy()->setTimeFrom($current_opening_hours->open_at);
-                $end_datetime = $date->copy()->setTimeFrom($current_opening_hours->close_at);
-                $filtered_collection->push(
-                    CarbonPeriod::create($start_datetime, $current_opening_hours->interval, $end_datetime)->excludeEndDate()
-                );
-            }
-        }
-
-        return $filtered_collection;
-    }
-
-    /**
-     * Filter the periods to extract all already booked appointments and re-organize the periods
-     *
-     * @return Organizer
-     */
-    public function filterOnlyAvailablePeriods() {
-        // Init
-        $booked_appointments = Appointment::where([
-                ['datetime', '>=', $this->from_date],
-                ['datetime', '<=', $this->to_date]
-            ])
-            ->orderBy('datetime', 'ASC')
-            ->get();
-
-        // No booked appointment yet, return unmodified collection
-        if($booked_appointments->isEmpty())
-            return $this;
-
-        $filtered_collection = clone $this;
-        $filtered_collection = $this->empty();
-        foreach($this as $period) {
-            $booked_appointments_in_period = $booked_appointments
-            ->filter(function($appointment) use ($period) {
-                return $appointment->datetime->isBetween($period->getStartDate(), $period->getEndDate());
-            });
-
-            if($booked_appointments_in_period->isEmpty()) {
-                $filtered_collection->push($period);
-                continue;
-            }
-
-            foreach($booked_appointments_in_period as $booked_appointment) {
-                $period_start_date = $period->getStartDate();
-                $before_interval = $period_start_date->diffAsCarbonInterval($booked_appointment->datetime);
-                if($period_start_date->lessThan($booked_appointment->datetime)) {
-                    $filtered_collection->push(
-                        CarbonPeriod::create($period_start_date, $before_interval, $booked_appointment->datetime)->excludeEndDate()
-                    );
-                }
-                $period->setStartDate($booked_appointment->end_datetime);
-            }
-
-            if($period->getStartDate()->lessThan($period->getEndDate())) {
-                $period->setDateInterval($period->getStartDate()->diffAsCarbonInterval($period->getEndDate()));
-                $filtered_collection->push($period->excludeEndDate());
-            }
-        }
-        return $filtered_collection;
-    }
-
-    /**
-     * Filter the periods with a specific appointment type: the periods will be splitted with the appointment interval
-     *
-     * @return Organizer
-     */
-    public function filterForAppointmentType() {
-        // Init
-        $filtered_collection = $this->empty();
-        $appointment_type_interval = $this->appointment_type->interval;
-        // Parse all the initial periods
-        foreach($this as $initial_period) {
-            // Split the period
-            $initial_period->setDateInterval($appointment_type_interval);
-            // Parse splitted period to create many periods instead of only dates
-            foreach($initial_period as $start_datetime) {
-                $end_datetime = $start_datetime->copy()->add($appointment_type_interval);
-                // Don't create if it overflows
-                if($initial_period->getEndDate()->greaterThanOrEqualTo($end_datetime)) {
-                    $period = CarbonPeriod::create($start_datetime, $appointment_type_interval, $end_datetime)->excludeEndDate();
-                    $filtered_collection->push($period);
-                }
-            }
-        }
-
-        return $filtered_collection;
-    }
-
-    /**
-     * Filter the periods to extract all the holidays from them
-     *
-     * @return Organizer
-     */
-    public function filterNotInHolidays() {
-        // Init
-        $holidays = Holidays::where([
-            ['date_start', '>=', $this->from_date],
-            ['date_end', '<=', $this->to_date]
-        ])->get();
-
-        // No holidays, return unmodified collection
-        if($holidays->isEmpty())
-            return $this;
-
-        $filtered_collection = $this->reject(function($current_date) use ($holidays) {
-            $date = $current_date->getStartDate();
-
-            foreach($holidays as $holidays_date) {
-                if ($date->isBetween($holidays_date->date_start, $holidays_date->date_end))
-                    return true;
-            }
-
-            return false;
-        });
-
-        return $this->empty()->mergeItems($filtered_collection);
-    }
-
-    /**
-     * Merge collection items but keep actual Organizer properties
-     *
-     * @param Array $items
-     * @return Organizer
-     */
-    public function mergeItems($items)
+    public function __call($filter_alias, $parameters)
     {
-        $dates_provider = clone $this;
-        $dates_provider->items = $this->merge($items)->all();
+        // Check if the filter is correctly registered, if not: throw bad method exception
+        if (!array_key_exists($filter_alias, self::$registered_filters)) {
+            throw new \Exception(chr(27) . "[41mNo method ${default_filters_to_disable}" . chr(27) . "[0m");
+        }
 
-        return $dates_provider;
+        $this->filters_to_apply[$filter_alias] = $parameters;
+
+        return $this;
     }
 
     /**
-     * Empty the collection items but keep actual Organizer properties
+     * Verify if dates is not empty then apply the filter on dates
      *
-     * @return Organizer
+     * @param FilterInterface $filter
+     * @param array $parameters
+     * @return void
      */
-    public function empty() {
+    private function applyFilter(FilterInterface $filter, ...$parameters)
+    {
+        if(! $this->dates->isEmpty()) {
+            $this->dates = $filter->applyParameters(...$parameters);
+        }
+    }
 
-        $dates_provider = clone $this;
-        $dates_provider->items = [];
+    /**
+     * Register a custom filter
+     *
+     * To register a custom filter: pass the namespace and class name to $filter_class parameter
+     * If $filter_alias_or_force_override is a string, it will be used as the alias, if it's a boolean, it will be used to override an existing filter
+     * If you need to override a filter and provide a specific alias (which is not the class name), use the boolean $force_override
+     *
+     * @param String $filter_class
+     * @param String|Bool $filter_alias_or_force_override
+     * @param Bool $force_override
+     *
+     * @return void
+     */
+    public static function registerFilter(String $filter_class, Bool $is_default = false, $filter_alias_or_force_override = false, Bool $force_override = false)
+    {
+        try {
+            // If the class doesn't exist: throw the php default error
+            if (! class_exists($filter_class)) {
+                new $filter_class();
+            }
 
-        return $dates_provider;
+            // If an filter_alias were specified: use it, if not, use the classe name
+            if (is_string($filter_alias_or_force_override)) {
+                $filter_alias = $filter_alias_or_force_override;
+            } else {
+                // ProgrammerNameSpace\CustomPlugin\Filters\CustomFilter becomes customFilter() method
+                $splitted_namespace = explode("\\", $filter_alias_or_force_override);
+                $filter_alias = lcfirst(end($splitted_namespace));
+            }
+            $force_override = (is_bool($filter_alias_or_force_override)) ? $filter_alias_or_force_override : $force_override;
+
+            // Determine in which array the user want to register the filter
+            $array_of_filters = $is_default ? 'registered_default_filters' : 'registered_filters';
+            // Throw an error if a filter with this alias is already registered and user didn't precise to override it
+            if(array_key_exists($filter_alias, self::$$array_of_filters) && ! $force_override) {
+                throw new \Exception(chr(27) . "[41mThe filter ${filter_alias} is already registered, to override it, pass the \$force_override parameter to true" . chr(27) . "[0m");
+            }
+        }  catch (\Exception $e) {
+            die($e->getMessage());
+        }
+
+        self::$$array_of_filters[$filter_alias] = $filter_class;
+    }
+
+    /**
+     * Disable one or many default filters, to disable one: passes the alias of the filter, with String or multiple aliases with Array
+     * If null is passed, all the default filters will be disabled
+     *
+     * @param String|Array $default_filters_to_disable
+     * @return void
+     */
+    public function withoutDefault($default_filters_to_disable = null) {
+        try {
+            $wrong_parameter_type = ! is_array($default_filters_to_disable) && ! is_string($default_filters_to_disable);
+            if (isset($default_filters_to_disable) && $wrong_parameter_type) {
+                throw new \Exception(chr(27) . "[41mWrong parameter type for \$default_filters_to_disable in whenever method call, need to be String or Array" . chr(27) . "[0m");
+            }
+
+            // Convert string as an array if needed
+            if (is_string($default_filters_to_disable)) {
+                $default_filters_to_disable = [$default_filters_to_disable];
+            }
+
+            foreach($default_filters_to_disable as $filter) {
+                $index_of_filter = array_search($filter, self::$registered_default_filters);
+                // Throw an exception if the filter is not registered.
+                if(is_null($index_of_filter)) {
+                    throw new \Exception(chr(27) . "[41mNo default filter ${filter} registered." . chr(27) . "[0m");
+                }
+
+                array_splice(self::$registered_default_filters, $index_of_filter, 1);
+            }
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+
+        return $this;
     }
 }
